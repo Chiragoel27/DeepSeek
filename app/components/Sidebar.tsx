@@ -56,7 +56,7 @@ const Sidebar: React.FC<SidebarProps> = ({ expand, setExpand }) => {
                 </button>
                 <div className={`mt-8 text-white/25 text-sm ${expand ? "block" : "hidden"}`}>
                     <p className='my-1'>Recents</p>
-                    <ChatLabel openMenu={openMenu}/>
+                    <ChatLabel openMenu={openMenu} setOpenMenu={setOpenMenu} />
                 </div>
             </div>
             <div>

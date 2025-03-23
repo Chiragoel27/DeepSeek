@@ -5,13 +5,14 @@ interface MongooseCache {
     promise: Promise<Mongoose> | null;
 }
 
-// Ensure the `cached` variable is globally available to prevent multiple connections
+// Ensure `mongooseCache` is globally available to prevent multiple connections
 declare global {
+    // `var` is required for global declarations
     var mongooseCache: MongooseCache | undefined;
 }
 
-// Use existing global cache or initialize a new one
-const cached: MongooseCache = global.mongooseCache || { conn: null, promise: null };
+// Use an existing global cache or initialize a new one
+const cached: MongooseCache = global.mongooseCache ?? { conn: null, promise: null };
 
 export default async function connectDB(): Promise<Mongoose | null> {
     if (cached.conn) return cached.conn;
