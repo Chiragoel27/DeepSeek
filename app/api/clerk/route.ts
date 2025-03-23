@@ -25,11 +25,11 @@ interface VerifiedWebhook {
 export async function POST(req: Request): Promise<NextResponse> {
     try {
         // Ensure SIGNING_SECRET is defined
-        if (!process.env.SIGNING_SECRET) {
+        if (!process.env.NEXT_PUBLIC_SIGNING_SCERET) {
             throw new Error("SIGNING_SECRET is not defined.");
         }
 
-        const wh = new Webhook(process.env.SIGNING_SECRET);
+        const wh = new Webhook(process.env.NEXT_PUBLIC_SIGNING_SCERET);
         
         // ✅ Await headers() before calling .get()
         const headerPayload = await headers(); 
