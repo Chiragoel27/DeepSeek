@@ -2,7 +2,7 @@ import { Webhook } from "svix";
 import User from "@/app/models/User";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
-import { connectDB } from "@/app/config/db";
+import connectDB from "@/app/config/db";
 
 // Define the structure of the webhook data
 interface EmailAddress {

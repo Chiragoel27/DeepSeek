@@ -1,28 +1,45 @@
-// database.ts
-import mongoose from "mongoose";
+/* eslint-disable no-var */
+import mongoose, { Mongoose } from "mongoose";
 
+interface MongooseCache {
+    conn: Mongoose | null;
+    promise: Promise<Mongoose> | null;
+}
 
-const MONGODB_URI = process.env.NEXT_PUBLIC_MONGODB_URI;
+// Ensure `mongooseCache` is globally available
+declare global {
+    var mongooseCache: MongooseCache | undefined;
+}
 
-let isConnected: boolean = false; // Track connection status
+/* eslint-enable no-var */
 
-if (!MONGODB_URI) throw new Error("MONGODB_URI is missing");
+// Use an existing cache or initialize a new one
+const cached: MongooseCache = global.mongooseCache ?? { conn: null, promise: null };
 
-export const connectDB = async (): Promise<void> => {
-	if (isConnected) return;
+export default async function connectDB(): Promise<Mongoose | null> {
+    if (cached.conn) return cached.conn; // Return existing connection
 
-	try {
-		await mongoose.connect(MONGODB_URI || "", {
-			dbName: "flash",
-			bufferCommands: false,
-			connectTimeoutMS: 10000,
-			socketTimeoutMS: 60000,
-			minPoolSize: 5,
-		});
-		isConnected = true;
-		console.log("Database connected successfully");
-	} catch (error) {
-		console.error("Database connection error:", error);
-		throw new Error("Failed to connect to the database");
-	}
-};
+    if (!cached.promise) {
+        cached.promise = mongoose.connect(process.env.NEXT_PUBLIC_MONGODB_URI as string, {
+            bufferCommands: true, // ✅ Allows queuing commands until connected
+            serverSelectionTimeoutMS: 5000, // ✅ Prevents long connection delays
+        }).then((mongoose) => {
+            console.log("✅ Connected to MongoDB:", mongoose.connection?.db?.databaseName || "Unknown DB");
+            return mongoose;
+        }).catch((err) => {
+            console.error("❌ MongoDB Connection Error:", err);
+            cached.promise = null; // Prevents retrying a failed promise
+            throw err; // Ensures failure is properly handled
+        });
+    }
+
+    try {
+        cached.conn = await cached.promise;
+        global.mongooseCache = cached;
+    } catch (error) {
+        console.error("❌ MongoDB Connection Failed:", error);
+        cached.conn = null;
+    }
+
+    return cached.conn;
+}
