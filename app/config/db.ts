@@ -11,7 +11,7 @@ declare global {
 }
 
 // Use existing global cache or initialize a new one
-let cached: MongooseCache = global.mongooseCache || { conn: null, promise: null };
+const cached: MongooseCache = global.mongooseCache || { conn: null, promise: null };
 
 export default async function connectDB(): Promise<Mongoose | null> {
     if (cached.conn) return cached.conn;

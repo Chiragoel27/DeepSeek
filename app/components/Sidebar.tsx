@@ -1,12 +1,17 @@
 import Image from 'next/image'
-import React, { useState } from 'react'
+import React, { Dispatch, SetStateAction, useState } from 'react'
 import { assets } from "@/assets/assets";
 import { useClerk, UserButton } from '@clerk/nextjs';
 import { useAppContext } from '../context/AppContext';
 import ChatLabel from './ChatLabel';
 
-const Sidebar = ({ expand, setExpand }: { expand: boolean, setExpand: any }) => {
-    const { openSignIn } = useClerk();
+interface SidebarProps {
+    expand: boolean;
+    setExpand: Dispatch<SetStateAction<boolean>>;
+}
+
+const Sidebar: React.FC<SidebarProps> = ({ expand, setExpand }) => { 
+        const { openSignIn } = useClerk();
     const { user } = useAppContext();
     const [openMenu, setOpenMenu] = useState({id: 0, open: false});
 
@@ -51,7 +56,7 @@ const Sidebar = ({ expand, setExpand }: { expand: boolean, setExpand: any }) => 
                 </button>
                 <div className={`mt-8 text-white/25 text-sm ${expand ? "block" : "hidden"}`}>
                     <p className='my-1'>Recents</p>
-                    <ChatLabel openMenu={openMenu} setOpenMenu={setOpenMenu}/>
+                    <ChatLabel openMenu={openMenu}/>
                 </div>
             </div>
             <div>
