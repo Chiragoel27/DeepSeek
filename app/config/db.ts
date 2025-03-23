@@ -1,4 +1,3 @@
-/* eslint-disable no-var */ // Suppress ESLint warning for `var`
 import mongoose, { Mongoose } from "mongoose";
 
 interface MongooseCache {
@@ -6,30 +5,36 @@ interface MongooseCache {
     promise: Promise<Mongoose> | null;
 }
 
-// Ensure `mongooseCache` is globally available to prevent multiple connections
+// Ensure `mongooseCache` is globally available
 declare global {
-    // `var` is required for global scope in TypeScript
     var mongooseCache: MongooseCache | undefined;
 }
-/* eslint-enable no-var */ // Re-enable ESLint after `var` declaration
 
-// Use an existing global cache or initialize a new one
+// Use an existing cache or initialize a new one
 const cached: MongooseCache = global.mongooseCache ?? { conn: null, promise: null };
 
 export default async function connectDB(): Promise<Mongoose | null> {
-    if (cached.conn) return cached.conn;
+    if (cached.conn) return cached.conn; // Return existing connection
 
     if (!cached.promise) {
-        cached.promise = mongoose.connect(process.env.NEXT_PUBLIC_MONGODB_URI as string, {
-            bufferCommands: false, // Optional for performance
+        cached.promise = mongoose.connect(process.env.MONGODB_URI as string, {
+            bufferCommands: true, // ✅ Allows queuing commands until connected
+            serverSelectionTimeoutMS: 5000, // ✅ Prevents long connection delays
+        }).then((mongoose) => {
+            console.log("✅ Connected to MongoDB:", mongoose.connection?.db?.databaseName || "Unknown DB");
+            return mongoose;
+        }).catch((err) => {
+            console.error("❌ MongoDB Connection Error:", err);
+            cached.promise = null; // Prevents retrying a failed promise
+            throw err; // Ensures failure is properly handled
         });
     }
 
     try {
         cached.conn = await cached.promise;
-        global.mongooseCache = cached; // Store in global to prevent duplicate connections
+        global.mongooseCache = cached;
     } catch (error) {
-        console.error("Error connecting to MongoDB:", error);
+        console.error("❌ MongoDB Connection Failed:", error);
         cached.conn = null;
     }
 
