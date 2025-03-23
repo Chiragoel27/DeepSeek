@@ -1,3 +1,4 @@
+/* eslint-disable no-var */ // Suppress ESLint warning for `var`
 import mongoose, { Mongoose } from "mongoose";
 
 interface MongooseCache {
@@ -7,9 +8,10 @@ interface MongooseCache {
 
 // Ensure `mongooseCache` is globally available to prevent multiple connections
 declare global {
-    // `var` is required for global declarations
+    // `var` is required for global scope in TypeScript
     var mongooseCache: MongooseCache | undefined;
 }
+/* eslint-enable no-var */ // Re-enable ESLint after `var` declaration
 
 // Use an existing global cache or initialize a new one
 const cached: MongooseCache = global.mongooseCache ?? { conn: null, promise: null };
