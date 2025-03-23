@@ -1,3 +1,4 @@
+/* eslint-disable no-var */
 import mongoose, { Mongoose } from "mongoose";
 
 interface MongooseCache {
@@ -9,6 +10,8 @@ interface MongooseCache {
 declare global {
     var mongooseCache: MongooseCache | undefined;
 }
+
+/* eslint-enable no-var */
 
 // Use an existing cache or initialize a new one
 const cached: MongooseCache = global.mongooseCache ?? { conn: null, promise: null };
