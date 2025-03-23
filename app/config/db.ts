@@ -20,7 +20,7 @@ export default async function connectDB(): Promise<Mongoose | null> {
     if (cached.conn) return cached.conn; // Return existing connection
 
     if (!cached.promise) {
-        cached.promise = mongoose.connect(process.env.MONGODB_URI as string, {
+        cached.promise = mongoose.connect(process.env.NEXT_PUBLIC_MONGODB_URI as string, {
             bufferCommands: true, // ✅ Allows queuing commands until connected
             serverSelectionTimeoutMS: 5000, // ✅ Prevents long connection delays
         }).then((mongoose) => {
