@@ -1,8 +1,14 @@
-import Image from 'next/image'
-import React from 'react'
+import Image from 'next/image';
+import React, { JSX } from 'react';
 import { assets } from "@/assets/assets";
 
-const Message = ({ role, content }: any) => {
+// Define props type
+interface MessageProps {
+    role: "user" | "bot"; // Restrict role to either "user" or "bot"
+    content: string | JSX.Element; // Ensure content is either text or a React component
+}
+
+const Message: React.FC<MessageProps> = ({ role, content }) => {
     return (
         <div className='flex flex-col items-center w-full max-w-3xl text-sm'>
             <div className={`flex flex-col w-full mb-8 ${role === "user" && "items-end"}`}>
@@ -39,7 +45,7 @@ const Message = ({ role, content }: any) => {
                 </div>
             </div>
         </div>
-    )
-}
+    );
+};
 
-export default Message
+export default Message;

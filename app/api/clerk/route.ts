@@ -4,6 +4,24 @@ import User from "@/app/models/User";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 
+// Define the structure of the webhook data
+interface EmailAddress {
+    email_address: string;
+}
+
+interface WebhookPayload {
+    id: string;
+    email_addresses: EmailAddress[];
+    first_name: string;
+    last_name: string;
+    image_url: string;
+}
+
+interface VerifiedWebhook {
+    data: WebhookPayload;
+    type: string;
+}
+
 export async function POST(req: Request): Promise<NextResponse> {
     try {
         // Ensure SIGNING_SECRET is defined
@@ -12,7 +30,9 @@ export async function POST(req: Request): Promise<NextResponse> {
         }
 
         const wh = new Webhook(process.env.SIGNING_SECRET);
-        const headerPayload = await headers(); // ✅ Await headers()
+        
+        // ✅ Await headers() before calling .get()
+        const headerPayload = await headers(); 
 
         // Convert headers into a valid string record
         const svixHeaders: Record<string, string> = {
@@ -26,9 +46,9 @@ export async function POST(req: Request): Promise<NextResponse> {
         }
 
         // Get and verify payload
-        const payload = await req.json();
+        const payload: WebhookPayload = await req.json();
         const body = JSON.stringify(payload);
-        const { data, type } = wh.verify(body, svixHeaders) as { data: any; type: string };
+        const { data, type } = wh.verify(body, svixHeaders) as VerifiedWebhook;
 
         if (!data) {
             return NextResponse.json({ error: "Invalid webhook payload" }, { status: 400 });
@@ -65,4 +85,3 @@ export async function POST(req: Request): Promise<NextResponse> {
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
     }
 }
- 

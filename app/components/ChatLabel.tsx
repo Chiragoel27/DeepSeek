@@ -2,7 +2,7 @@ import Image from 'next/image'
 import React from 'react'
 import { assets } from "@/assets/assets";
 
-const ChatLabel = ({openMenu, setOpenMenu} : {openMenu: {id: number, open: boolean}, setOpenMenu: any}) => {
+const ChatLabel = ({openMenu} : {openMenu: {id: number, open: boolean}}) => {
     return (
         <div className='flex items-center justify-between p-2 text-white/80 hover:bg-white/10 rounded-lg text-sm group cursor-pointer'>
             <p className='group-hover:max-w-5/6 truncate'>Chat Name Here</p>
