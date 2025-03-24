@@ -6,9 +6,9 @@ import axios from 'axios';
 import toast from 'react-hot-toast';
 
 interface ChatLabelProps {
-    openMenu: {id: number, open: boolean};
-    setOpenMenu: Dispatch<SetStateAction<{id: number, open: boolean}>>;
-    id: number;
+    openMenu: {id: string, open: boolean};
+    setOpenMenu: Dispatch<SetStateAction<{id: string, open: boolean}>>;
+    id: string;
     name: string;
 }
 
@@ -17,7 +17,7 @@ const ChatLabel: React.FC<ChatLabelProps> = ({openMenu, setOpenMenu, id, name}) 
 
     const selectChat = () => {
         const chatData = chats.find(chat => chat._id === id);
-        setSelectedChat(chatData);
+        if(chatData) setSelectedChat(chatData);
         console.log(chatData);
     }
 
@@ -28,7 +28,7 @@ const ChatLabel: React.FC<ChatLabelProps> = ({openMenu, setOpenMenu, id, name}) 
             const {data} = await axios.post('api/chat/rename', {chatId: id, name: newName});
             if(data.success) {
                 fetchUserChats();
-                setOpenMenu({id: 0, open: false});
+                setOpenMenu({id: id, open: false});
                 toast.success(data.message);
             } else {
                 toast.error(data.message);
@@ -49,7 +49,7 @@ const ChatLabel: React.FC<ChatLabelProps> = ({openMenu, setOpenMenu, id, name}) 
             const {data} = await axios.post('api/chat/delete', {chatId: id});
             if(data.success) {
                 fetchUserChats();
-                setOpenMenu({id: 0, open: false});
+                setOpenMenu({id: id, open: false});
                 toast.success(data.message);
             } else {
                 toast.error(data.message);

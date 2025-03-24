@@ -13,7 +13,7 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ expand, setExpand }) => {
     const { openSignIn } = useClerk();
     const { user, chats, createNewChat } = useAppContext();
-    const [openMenu, setOpenMenu] = useState({ id: 0, open: false });
+    const [openMenu, setOpenMenu] = useState({ id: "", open: false });
 
     return (
         <div className={`flex flex-col justify-between bg-[#212327] pt-7 transition-all z-50 max-md:absolute max-md:h-screen ${expand ? "p-4 w-64" : "md:w-20 w-0"}`}>

@@ -7,7 +7,7 @@ import toast from 'react-hot-toast';
 
 // Define props type
 interface MessageProps {
-    role: "user" | "bot"; // Restrict role to either "user" or "bot"
+    role: "user" | "assistant"; // Restrict role to either "user" or "bot"
     content: string; // Ensure content is either text or a React component
 }
 

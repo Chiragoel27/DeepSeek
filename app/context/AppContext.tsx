@@ -6,7 +6,7 @@ import toast from "react-hot-toast";
 
 // Define the type for a chat message
 export interface ChatMessage {
-    role: string;
+    role: "user" | "assistant";
     content: string | null;
     timestamp?: number;
 }
@@ -118,7 +118,7 @@ export const AppContextProvider = ({ children }: AppContextProviderProps) => {
         if (user) fetchUserChats();
     }, [user]);
 
-    const value: AppContextType = { 
+    const value: AppContextType = {
         user,
         chats,
         setChats,
