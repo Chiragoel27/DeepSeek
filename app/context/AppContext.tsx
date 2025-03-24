@@ -4,13 +4,29 @@ import axios from "axios";
 import { createContext, useContext, ReactNode, useState, useEffect } from "react";
 import toast from "react-hot-toast";
 
+// Define the type for a chat message
+export interface ChatMessage {
+    role: string;
+    content: string | null;
+    timestamp?: number;
+}
+
+// Define the type for a chat
+export interface Chat {
+    _id: string;
+    messages: ChatMessage[];
+    name: string;
+    updatedAt: string; // Assuming updatedAt is a string; adjust if it's a Date
+    // Add additional properties as needed
+}
+
 // Define the type for the context value
 interface AppContextType {
     user: ReturnType<typeof useUser>["user"];
-    chats: any[]; // Ideally, replace `any[]` with a Chat type
-    setChats: React.Dispatch<React.SetStateAction<any[]>>;
-    selectedChat: any | null; // Ideally, replace `any` with a Chat type
-    setSelectedChat: React.Dispatch<React.SetStateAction<any | null>>;
+    chats: Chat[];
+    setChats: React.Dispatch<React.SetStateAction<Chat[]>>;
+    selectedChat: Chat | null;
+    setSelectedChat: React.Dispatch<React.SetStateAction<Chat | null>>;
     createNewChat: () => Promise<void>;
     fetchUserChats: () => Promise<void>;
 }
@@ -36,8 +52,8 @@ export const AppContextProvider = ({ children }: AppContextProviderProps) => {
     const { user } = useUser();
     const { getToken } = useAuth();
 
-    const [chats, setChats] = useState<any[]>([]);
-    const [selectedChat, setSelectedChat] = useState<any | null>(null);
+    const [chats, setChats] = useState<Chat[]>([]);
+    const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
 
     const createNewChat = async () => {
         try {
@@ -52,8 +68,10 @@ export const AppContextProvider = ({ children }: AppContextProviderProps) => {
             });
 
             await fetchUserChats(); // Ensure latest chat data is fetched
-        } catch (error: any) {
-            toast.error(error.message);
+        } catch (error: unknown) {
+            if (error instanceof Error) {
+                toast.error(error.message);
+            }
         }
     };
 
@@ -71,16 +89,17 @@ export const AppContextProvider = ({ children }: AppContextProviderProps) => {
 
             if (data.success) {
                 console.log(data.data);
+                // Assuming data.data is an array of Chat objects
                 setChats(data.data);
 
-                if (data.data?.length === 0) {
+                if (data.data.length === 0) {
                     await createNewChat();
-                    setSelectedChat(data.data);
+                    setSelectedChat(data.data[0] || null);
                     return;
                 } else {
                     // Sort chats based on last update time
                     const sortedChats = data.data.sort(
-                        (a: any, b: any) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+                        (a: Chat, b: Chat) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
                     );
                     setSelectedChat(sortedChats[0]);
                     console.log(sortedChats[0]);
@@ -88,8 +107,10 @@ export const AppContextProvider = ({ children }: AppContextProviderProps) => {
             } else {
                 toast.error(data.message);
             }
-        } catch (error: any) {
-            toast.error(error.message);
+        } catch (error: unknown) {
+            if (error instanceof Error) {
+                toast.error(error.message);
+            }
         }
     };
 

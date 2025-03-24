@@ -15,6 +15,7 @@ export interface ChatType {
     _id: string;
     messages: ChatMessage[];
     name: string;
+    updatedAt: string; // or Date if that's what you're using
 }
 
 interface PromptBoxProps {
@@ -24,7 +25,7 @@ interface PromptBoxProps {
 
 const PromptBox: React.FC<PromptBoxProps> = ({ isLoading, setIsLoading }) => {
     const [prompt, setPrompt] = useState<string>('');
-    const { user, chats, setChats, selectedChat, setSelectedChat } = useAppContext();
+    const { user, setChats, selectedChat, setSelectedChat } = useAppContext();
 
     // Create a function that handles the prompt sending logic
     const handleSendPrompt = async (event: React.FormEvent<HTMLFormElement> | React.KeyboardEvent<HTMLTextAreaElement>): Promise<void> => {
@@ -60,11 +61,11 @@ const PromptBox: React.FC<PromptBoxProps> = ({ isLoading, setIsLoading }) => {
 
         // Update the selected chat immutably
         if (selectedChat) {
-            setSelectedChat((prev: ChatType) => ({
-                ...prev,
-                messages: [...prev.messages, userPrompt],
-            }));
+            setSelectedChat((prev) =>
+                prev ? { ...prev, messages: [...prev.messages, userPrompt] } : prev
+            );
         }
+
 
         try {
             const { data } = await axios.post('/api/chat/ai', {
@@ -92,10 +93,10 @@ const PromptBox: React.FC<PromptBoxProps> = ({ isLoading, setIsLoading }) => {
 
                 // Set initial AI message before animation
                 if (selectedChat) {
-                    setSelectedChat((prev: ChatType) => ({
-                        ...prev,
-                        messages: [...prev.messages, assistantMessage],
-                    }));
+                    setSelectedChat((prev) =>
+                        prev ? { ...prev, messages: [...prev.messages, assistantMessage] } : prev
+                    );
+
                 }
 
                 // Animate message word-by-word
@@ -106,7 +107,8 @@ const PromptBox: React.FC<PromptBoxProps> = ({ isLoading, setIsLoading }) => {
                             content: messageTokens.slice(0, i + 1).join(" "),
                         };
                         if (selectedChat) {
-                            setSelectedChat((prev: ChatType) => {
+                            setSelectedChat((prev) => {
+                                if (!prev) return prev;
                                 const updatedMessages = [
                                     ...prev.messages.slice(0, -1),
                                     assistantMessage,
@@ -124,8 +126,6 @@ const PromptBox: React.FC<PromptBoxProps> = ({ isLoading, setIsLoading }) => {
         } catch (error: unknown) {
             if (error instanceof Error) {
                 toast.error(error.message);
-            } else {
-                toast.error("Unknown Error");
             }
             setPrompt(promptCopy);
         } finally {
@@ -142,7 +142,7 @@ const PromptBox: React.FC<PromptBoxProps> = ({ isLoading, setIsLoading }) => {
     return (
         <form
             onSubmit={handleSendPrompt}
-            className={`w-full ${selectedChat?.messages?.length > 0 ? "max-w-3xl" : "max-w-2xl"} bg-[#404045] p-4 rounded-3xl mt-4 transition-all`}
+            className={`w-full ${((selectedChat?.messages?.length ?? 0) > 0 ? "max-w-3xl" : "max-w-2xl")} bg-[#404045] p-4 rounded-3xl mt-4 transition-all`}
         >
             <textarea
                 className='outline-none w-full resize-none overflow-hidden break-words bg-transparent'
