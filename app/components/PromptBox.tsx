@@ -6,7 +6,7 @@ import toast from 'react-hot-toast';
 import axios from 'axios';
 
 interface ChatMessage {
-    role: string;
+    role: "user" | "assistant";
     content: string | null;
     timestamp?: number;
 }
