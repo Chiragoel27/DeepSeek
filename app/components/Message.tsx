@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import React, { JSX, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { assets } from "@/assets/assets";
 import Markdown from 'react-markdown';
 import Prism from 'prismjs'

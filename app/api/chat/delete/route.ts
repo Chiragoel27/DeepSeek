@@ -20,7 +20,10 @@ export async function POST(req: NextRequest) {
         await Chat.deleteOne({ _id: chatId, userId });
 
         return NextResponse.json({ success: true, message: "Chat Deleted" });
-    } catch (error: any) {
-        return NextResponse.json({ success: false, error: error.message });
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+            return NextResponse.json({ success: false, error: error.message });
+        }
+        return NextResponse.json({ success: false, error: "Unknown error" });
     }
 }

@@ -33,8 +33,12 @@ const ChatLabel: React.FC<ChatLabelProps> = ({openMenu, setOpenMenu, id, name}) 
             } else {
                 toast.error(data.message);
             }
-        } catch (error: any) {
-            toast.error(error.message)
+        } catch (error: unknown) {
+            if(error instanceof Error) {
+                toast.error(error.message)
+            } else {
+                toast.error("Unknown Error");
+            }
         }
     }
 
@@ -50,8 +54,12 @@ const ChatLabel: React.FC<ChatLabelProps> = ({openMenu, setOpenMenu, id, name}) 
             } else {
                 toast.error(data.message);
             }
-        } catch (error: any) {
-            toast.error(error.message)
+        } catch (error: unknown) {
+            if(error instanceof Error) {
+                toast.error(error.message)
+            } else {
+                toast.error("Unknown Error");
+            }
         }
     }
 

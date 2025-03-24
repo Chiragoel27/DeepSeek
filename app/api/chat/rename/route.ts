@@ -20,7 +20,9 @@ export async function POST(req: NextRequest) {
         await Chat.findOneAndUpdate({_id: chatId, userId}, {name});
 
         return NextResponse.json({ success: true, message: "Chat Renamed" });
-    } catch (error: any) {
-        return NextResponse.json({ success: false, error: error.message });
-    }
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+            return NextResponse.json({ success: false, error: error.message });
+        }
+        return NextResponse.json({ success: false, error: "Unknown error" });    }
 }

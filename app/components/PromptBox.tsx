@@ -5,6 +5,18 @@ import { useAppContext } from '../context/AppContext';
 import toast from 'react-hot-toast';
 import axios from 'axios';
 
+interface ChatMessage {
+    role: string;
+    content: string | null;
+    timestamp?: number;
+}
+
+export interface ChatType {
+    _id: string;
+    messages: ChatMessage[];
+    name: string;
+}
+
 interface PromptBoxProps {
     isLoading: boolean;
     setIsLoading: Dispatch<SetStateAction<boolean>>;
@@ -14,90 +26,107 @@ const PromptBox: React.FC<PromptBoxProps> = ({ isLoading, setIsLoading }) => {
     const [prompt, setPrompt] = useState<string>('');
     const { user, chats, setChats, selectedChat, setSelectedChat } = useAppContext();
 
-    const sendPrompt = async (e: React.FormEvent<HTMLFormElement>) => {
+    // Create a function that handles the prompt sending logic
+    const handleSendPrompt = async (event: React.FormEvent<HTMLFormElement> | React.KeyboardEvent<HTMLTextAreaElement>): Promise<void> => {
+        event.preventDefault();
         const promptCopy = prompt;
 
-        try {
-            e.preventDefault();
-            if (!user) return toast.error("Login to send message");
-            if (isLoading) return toast.error("Wait for previous prompt response");
+        if (!user) {
+            toast.error("Login to send message");
+            return;
+        }
+        if (isLoading) {
+            toast.error("Wait for previous prompt response");
+            return;
+        }
 
-            setIsLoading(true);
-            setPrompt("");
+        setIsLoading(true);
+        setPrompt("");
 
-            const userPrompt = {
-                role: "user",
-                content: prompt,
-                timestamp: Date.now(),
-            };
+        const userPrompt: ChatMessage = {
+            role: "user",
+            content: prompt,
+            timestamp: Date.now(),
+        };
 
-            // ✅ Update chats immutably
-            setChats((prevChats) =>
-                prevChats.map((chat) =>
-                    chat._id === selectedChat._id
-                        ?
-                        {
-                            ...chat,
-                            messages: [...chat.messages, userPrompt]
-                        } : chat
-                )
-            );
+        // Update chats immutably
+        setChats((prevChats: ChatType[]) =>
+            prevChats.map((chat) =>
+                chat._id === selectedChat?._id
+                    ? { ...chat, messages: [...chat.messages, userPrompt] }
+                    : chat
+            )
+        );
 
-            setSelectedChat((prev: any) => ({
+        // Update the selected chat immutably
+        if (selectedChat) {
+            setSelectedChat((prev: ChatType) => ({
                 ...prev,
                 messages: [...prev.messages, userPrompt],
             }));
+        }
 
+        try {
             const { data } = await axios.post('/api/chat/ai', {
-                chatId: selectedChat._id,
+                chatId: selectedChat?._id,
                 prompt,
             });
 
             if (data.success) {
-                // ✅ Update chat with AI response
-                setChats((prevChats) =>
+                // Update chat with AI response immutably
+                setChats((prevChats: ChatType[]) =>
                     prevChats.map((chat) =>
-                        chat._id === selectedChat._id
+                        chat._id === selectedChat?._id
                             ? { ...chat, messages: [...chat.messages, data.data] }
                             : chat
                     )
                 );
 
-                const message = data.data.content;
-                const messageTokens = message.split(" ");
-                let assistantMessage = {
+                const messageContent: string = data.data.content;
+                const messageTokens = messageContent.split(" ");
+                let assistantMessage: ChatMessage = {
                     role: 'assistant',
                     content: "",
                     timestamp: Date.now(),
                 };
 
-                // ✅ Set initial AI message before animation
-                setSelectedChat((prev: any) => ({
-                    ...prev,
-                    messages: [...prev.messages, assistantMessage],
-                }));
+                // Set initial AI message before animation
+                if (selectedChat) {
+                    setSelectedChat((prev: ChatType) => ({
+                        ...prev,
+                        messages: [...prev.messages, assistantMessage],
+                    }));
+                }
 
-                // ✅ Animate message word-by-word
+                // Animate message word-by-word
                 for (let i = 0; i < messageTokens.length; i++) {
                     setTimeout(() => {
-                        assistantMessage.content = messageTokens.slice(0, i + 1).join(" ")
-                        setSelectedChat((prev: any) => {
-                            const updatedMessages = [
-                                ...prev.messages.slice(0, -1),
-                                assistantMessage
-                            ]
-                            return { ...prev, messages: updatedMessages };
-                        });
+                        assistantMessage = {
+                            ...assistantMessage,
+                            content: messageTokens.slice(0, i + 1).join(" "),
+                        };
+                        if (selectedChat) {
+                            setSelectedChat((prev: ChatType) => {
+                                const updatedMessages = [
+                                    ...prev.messages.slice(0, -1),
+                                    assistantMessage,
+                                ];
+                                return { ...prev, messages: updatedMessages };
+                            });
+                        }
                     }, i * 100);
                 }
             } else {
-                console.log(data);
+                console.error(data);
                 toast.error(data.message || data.error);
                 setPrompt(promptCopy);
             }
-        } catch (error: any) {
-            console.log(error);
-            toast.error(error.message);
+        } catch (error: unknown) {
+            if (error instanceof Error) {
+                toast.error(error.message);
+            } else {
+                toast.error("Unknown Error");
+            }
             setPrompt(promptCopy);
         } finally {
             setIsLoading(false);
@@ -106,14 +135,13 @@ const PromptBox: React.FC<PromptBoxProps> = ({ isLoading, setIsLoading }) => {
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
         if (e.key === "Enter" && !e.shiftKey) {
-            e.preventDefault();
-            sendPrompt(e as any);
+            handleSendPrompt(e);
         }
     };
 
     return (
         <form
-            onSubmit={sendPrompt}
+            onSubmit={handleSendPrompt}
             className={`w-full ${selectedChat?.messages?.length > 0 ? "max-w-3xl" : "max-w-2xl"} bg-[#404045] p-4 rounded-3xl mt-4 transition-all`}
         >
             <textarea

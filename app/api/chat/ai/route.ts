@@ -10,6 +10,12 @@ const openai = new OpenAI({
     apiKey: process.env.NEXT_PUBLIC_DEEPSEEK_API_KEY,
 });
 
+interface ChatMessage {
+    role: string;
+    content: string | null;
+    timestamp?: number;
+}
+
 export async function POST(req: NextRequest) {
     try {
         const { userId } = getAuth(req);
@@ -28,7 +34,7 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ success: false, message: "Chat not found" });
         }
 
-        const userPrompt = {
+        const userPrompt: ChatMessage = {
             role: "user",
             content: prompt,
             timestamp: Date.now()
@@ -42,13 +48,16 @@ export async function POST(req: NextRequest) {
             store: true,
         });
 
-        const message: any = completion.choices[0].message;
+        const message: ChatMessage = completion.choices[0].message;
         message.timestamp = Date.now();
         data.messages.push(message);
 
         await data.save();
         return NextResponse.json({ success: true, data: message });
-    } catch (error: any) {
-        return NextResponse.json({ success: false, error: error.message });
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+            return NextResponse.json({ success: false, error: error.message });
+        }
+        return NextResponse.json({ success: false, error: "Unknown error" });
     }
 }

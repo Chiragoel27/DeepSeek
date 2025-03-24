@@ -24,7 +24,10 @@ export async function POST(req: NextRequest) {
         await Chat.create(chatData);
 
         return NextResponse.json({ success: true, message: "Chat created" });
-    } catch (error: any) {
-        return NextResponse.json({ success: false, error: error.message });
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+            return NextResponse.json({ success: false, error: error.message });
+        }
+        return NextResponse.json({ success: false, error: "Unknown error" });
     }
 }
